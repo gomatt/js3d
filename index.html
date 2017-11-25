@@ -12,6 +12,7 @@
         <script src="js/Three.js"></script>
         <script src="js/OrbitControls.js"></script>
         <script src="js/Stats.js"></script>
+        <script src="js/Loaders/TDSLoader.js"></script>
         <script>
             // Create 'global' variables
             var container, scene, camera, controls, renderer, stats, light, light1;
@@ -156,6 +157,11 @@
 //                    //text.quaternion.copy( camera.quaternion );
 //                    //scene.add( text );
 //                } );
+                loader = new THREE.TDSLoader();
+                loader.setPath('/objects/');
+                loader.load('objects/ThreeJS.3DS', function ( object ) {
+                   scene.add(object);
+                });
 
                 // HELPERS
 	            var axes = new THREE.AxesHelper(15);
