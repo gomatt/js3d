@@ -13,153 +13,166 @@
         <script src="js/OrbitControls.js"></script>
         <script src="js/Stats.js"></script>
         <script>
-            var container, scene, camera, controls, renderer, stats;
-
+            // Create 'global' variables
+            var container, scene, camera, controls, renderer, stats, light, light1;
+            var labelY, labelX, labelZ;
             // Initialize
             init();
 
             // Render/animate
             animate();
+
             function init() {
+                // CONTAINER
                 container = document.createElement('div');
                 document.body.appendChild(container);
 
-                camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 10000);
-                camera.position.set(0, 20, 100);
+                // SCENE
+                scene = new THREE.Scene();
+                scene.background = new THREE.Color( 0x000000 );
 
-                // Set up renderer
+                // CAMERA (fov,aspect,near limit,far limit)
+                camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 10000);
+                camera.position.set(75, 45, 100);
+                camera.lookAt(new THREE.Vector3(0,0,0));
+
+                // LIGHTS
+                light = new THREE.AmbientLight(0xffffff, 0.5);
+                scene.add(light);
+
+                light1 = new THREE.PointLight(0xffffff, 0.5);
+                light1.position.set(100,100,100);
+                scene.add(light1);
+
+                // RENDERER
+                //TODO: add check for renderer
                 renderer = new THREE.WebGLRenderer();
                 renderer.setSize(window.innerWidth, window.innerHeight);
-
+                renderer.setPixelRatio(window.devicePixelRatio);
                 container.appendChild(renderer.domElement);
 
-                scene = new THREE.Scene();
-
+                // CONTROLS
                 controls = new THREE.OrbitControls(camera);
+                controls.target.set( 0, 0, 0 );
+                controls.update();
 
+                // STATS
                 stats = new Stats();
                 stats.domElement.style.position = 'absolute';
                 stats.domElement.style.top = '0px';
                 stats.domElement.style.zIndex = 100;
                 container.appendChild(stats.domElement);
 
-                // Add objects
-                var geometry = new THREE.BoxGeometry(1, 1, 1);
-                var material = new THREE.MeshBasicMaterial({color: 0x00ff00});
-                var cube = new THREE.Mesh(geometry, material);
-                scene.add(cube);
+                // OBJECTS
+                var geometry = new THREE.BoxGeometry(10, 10, 10);
+                var material = new THREE.MeshLambertMaterial({color: 0x00ff00});
+                var mesh = new THREE.Mesh(geometry, material);
+                //scene.add(mesh);
 
-                // Create axes
+                // LOADERS
+                var loader = new THREE.FontLoader();
+                loader.load( 'fonts/helvetiker_regular.typeface.json', function ( font ) {
+                    var textShape = new THREE.BufferGeometry();
+                    var color = 0x00ff00;
+                    var matLite = new THREE.MeshBasicMaterial({
+                        color: color,
+                        transparent: true,
+                        opacity: 0.5,
+                        side: THREE.DoubleSide
+                    });
+                    var message = "Y+";
+                    var shapes = font.generateShapes(message, 5, 2);
+                    var geometry = new THREE.ShapeGeometry(shapes);
+                    geometry.computeBoundingBox();
+                    var xMid = -0.5 * ( geometry.boundingBox.max.x - geometry.boundingBox.min.x );
+                    geometry.translate(xMid, 20, 0);
+                    textShape.fromGeometry(geometry);
+                    labelY = new THREE.Mesh(textShape, matLite);
+                    //labelY.position.z = 0;
+                    //text.lookAt(camera.position);
+                    //labelY.quaternion.copy(camera.quaternion);
+                    scene.add(labelY);
+                });
+                loader.load( 'fonts/helvetiker_regular.typeface.json', function ( font ) {
+                    var textShape = new THREE.BufferGeometry();
+                    var color = 0x0000ff;
+                    var matLite = new THREE.MeshBasicMaterial( {
+                        color: color,
+                        transparent: true,
+                        opacity: 0.5,
+                        side: THREE.DoubleSide
+                    });
+                    var message = "Z+";
+                    var shapes = font.generateShapes( message, 5, 2 );
+                    geometry = new THREE.ShapeGeometry( shapes );
+                    geometry.rotateX( Math.PI / 2 );
+                    geometry.computeBoundingBox();
+                    var xMid = - 0.5 * ( geometry.boundingBox.max.x - geometry.boundingBox.min.x );
+                    var yMid = - 0.5 * ( geometry.boundingBox.max.y - geometry.boundingBox.min.y );
+                    geometry.translate( xMid, yMid, 20 );
+                    textShape.fromGeometry( geometry );
+                    labelZ = new THREE.Mesh( textShape, matLite );
+                    scene.add( labelZ );
+                });
+                loader.load( 'fonts/helvetiker_regular.typeface.json', function ( font ) {
+                    var textShape = new THREE.BufferGeometry();
+                    var color = 0xff0000;
+                    var matLite = new THREE.MeshBasicMaterial( {
+                        color: color,
+                        transparent: true,
+                        opacity: 0.5,
+                        side: THREE.DoubleSide
+                    });
+                    var message = "X+";
+                    var shapes = font.generateShapes( message, 5, 2 );
+                    geometry = new THREE.ShapeGeometry( shapes );
+                    //geometry.rotateZ( Math.PI / 2 );
+                    geometry.computeBoundingBox();
+                    var zMid = - 0.5 * ( geometry.boundingBox.max.z - geometry.boundingBox.min.z );
+                    var yMid = - 0.5 * ( geometry.boundingBox.max.y - geometry.boundingBox.min.y );
+                    geometry.translate( 20, yMid, zMid );
+                    textShape.fromGeometry( geometry );
+                    labelX = new THREE.Mesh( textShape, matLite );
+                    scene.add( labelX );
+                });
+//                var loader2 = new THREE.FontLoader();
+//                loader2.load( 'fonts/helvetiker_regular.typeface.json', function ( font ) {
+//                    var textShape = new THREE.BufferGeometry();
+//                    var geometry = new THREE.TextGeometry( 'Y+', {
+//                        font: font,
+//                        size: 5,
+//                        height: 0,
+//                        curveSegments: 12,
+//                        bevelEnabled: false,
+//                        bevelThickness: 10,
+//                        bevelSize: 8,
+//                        bevelSegments: 5
+//                    } );
+//                    textShape.fromGeometry( geometry );
+//                    var text = new THREE.Mesh( textShape );
+//                    text.position.y = 20;
+//                    text.position.z = 0;
+//
+//                    //text.quaternion.copy( camera.quaternion );
+//                    //scene.add( text );
+//                } );
+
+                // HELPERS
 	            var axes = new THREE.AxesHelper(15);
 	            scene.add( axes );
-
-                var spritey = makeTextSprite( "Y", {
-                    //fontsize: 12,
-                    borderColor: {r:255, g:0, b:0, a:1.0},
-                    backgroundColor: {r:255, g:100, b:100, a:0.8} } );
-                spritey.position.set(
-                    5,
-                    5,
-                    5);
-                scene.add( spritey );
-
-/*	            var  textGeo = new THREE.TextGeometry('Y', {
-                     size: 5,
-                     height: 2,
-                     curveSegments: 6,
-                     style: "normal"
-                });
-
-	            var color = new THREE.Color();
-	            color.setRGB(255,250,250);
-	            var textMaterial = new THREE.MeshBasicMaterial({color:color});
-	            var text = new THREE.Mesh(textGeo, textMaterial);
-
-	            text.position.x = axes.geometry.vertices[1].x;
-	            text.position.y = axes.geometry.vertices[1].y;
-	            text.position.z = axes.geometry.vertices[1].z;
-	            text.rotation = camera.rotation;
-	            scene.add(text);*/
-
-                controls.update();
             }
-            function makeTextSprite( message, parameters ) {
-                if (parameters === undefined) parameters = {};
-
-                var fontface = parameters.hasOwnProperty("fontface") ?
-                    parameters["fontface"] : "Arial";
-
-                var fontsize = parameters.hasOwnProperty("fontsize") ?
-                    parameters["fontsize"] : 18;
-
-                var borderThickness = parameters.hasOwnProperty("borderThickness") ?
-                    parameters["borderThickness"] : 4;
-
-                var borderColor = parameters.hasOwnProperty("borderColor") ?
-                    parameters["borderColor"] : {r: 0, g: 0, b: 0, a: 1.0};
-
-                var backgroundColor = parameters.hasOwnProperty("backgroundColor") ?
-                    parameters["backgroundColor"] : {r: 255, g: 255, b: 255, a: 1.0};
-
-                var spriteAlignment;// = THREE.SpriteAlignment.topLeft;
-
-                var canvas = document.createElement('canvas');
-                var context = canvas.getContext('2d');
-                context.font = "Bold " + fontsize + "px " + fontface;
-
-                // get size data (height depends only on font size)
-                var metrics = context.measureText(message);
-                var textWidth = metrics.width;
-
-                // background color
-                context.fillStyle = "rgba(" + backgroundColor.r + "," + backgroundColor.g + ","
-                    + backgroundColor.b + "," + backgroundColor.a + ")";
-                // border color
-                context.strokeStyle = "rgba(" + borderColor.r + "," + borderColor.g + ","
-                    + borderColor.b + "," + borderColor.a + ")";
-
-                context.lineWidth = borderThickness;
-                roundRect(context, borderThickness / 2, borderThickness / 2, textWidth + borderThickness, fontsize * 1.4 + borderThickness, 6);
-                // 1.4 is extra height factor for text below baseline: g,j,p,q.
-
-                // text color
-                context.fillStyle = "rgba(0, 0, 0, 1.0)";
-
-                context.fillText(message, borderThickness, fontsize + borderThickness);
-
-                // canvas contents will be used for a texture
-                var texture = new THREE.Texture(canvas)
-                texture.needsUpdate = true;
-
-                var spriteMaterial = new THREE.SpriteMaterial(
-                    {map: texture, useScreenCoordinates: false, alignment: spriteAlignment});
-                var sprite = new THREE.Sprite(spriteMaterial);
-                sprite.scale.set(100, 50, 1.0);
-                return sprite;
-            }
-            // function for drawing rounded rectangles
-            function roundRect(ctx, x, y, w, h, r)
-            {
-                ctx.beginPath();
-                ctx.moveTo(x+r, y);
-                ctx.lineTo(x+w-r, y);
-                ctx.quadraticCurveTo(x+w, y, x+w, y+r);
-                ctx.lineTo(x+w, y+h-r);
-                ctx.quadraticCurveTo(x+w, y+h, x+w-r, y+h);
-                ctx.lineTo(x+r, y+h);
-                ctx.quadraticCurveTo(x, y+h, x, y+h-r);
-                ctx.lineTo(x, y+r);
-                ctx.quadraticCurveTo(x, y, x+r, y);
-                ctx.closePath();
-                ctx.fill();
-                ctx.stroke();
-            }
-            function animate() {
-                requestAnimationFrame( animate );
+            function update() {
                 controls.update();
                 stats.update();
+            }
+            function render() {
                 renderer.render( scene, camera );
-
+            }
+            function animate() {
+                // Loop
+                requestAnimationFrame( animate );
+                update();
+                render();
             }
         </script>
     </body>
